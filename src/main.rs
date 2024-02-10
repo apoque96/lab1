@@ -40,11 +40,79 @@ fn create_matrix(width: usize, height: usize, apartment_map: Value) -> Vec<bool>
     }
     matrix
 }
-fn main() {
-    let lines = lines_from_file("./input/input_example.jsonl");
-    // for line in lines {
-    //     println!("{:?}", line);
-    // }
+
+struct Apartment{
+    apartment_number: usize,
+    distance_to_buildings: Vec<usize>,
+}
+
+fn find_best_apartment(width: usize, height: usize, matrix: Vec<bool>) -> i32{
+    let mut possible_best = vec![];
+    let mut min_distance = 0;
+    let mut apartment = 0;
+    while apartment < height{
+        let mut current = Apartment{
+            apartment_number: apartment,
+            distance_to_buildings: vec![],
+        };
+        let mut building = 0;
+        while building < width{
+            let mut distance = 0;
+            let result: bool = loop{
+                if (apartment as i32 - distance as i32) >= 0{
+                    if matrix[(apartment - distance) * width + building] == true {
+                        break true;
+                    }
+                }
+                if (apartment + distance) < height{
+                    if matrix[(apartment + distance) * width + building] == true{
+                        break true;
+                    }
+                }
+                if (apartment as i32 - distance as i32) < 0 &&
+                   (apartment + distance) >= height{
+                    break false;
+                }
+                distance += 1;
+            };
+            if result == true{
+                current.distance_to_buildings.push(distance);
+            }
+            building += 1;
+        }
+        if current.distance_to_buildings.len() == width{
+            let dist: usize = current.distance_to_buildings.iter().sum();
+            if possible_best.len() == 0{
+                possible_best.push(current);
+                min_distance = dist;
+            }
+            else if min_distance == dist{
+                possible_best.push(current);
+            }
+            else if min_distance > dist{
+                possible_best.clear();
+                possible_best.push(current);
+                min_distance = dist;
+            }
+        }
+        apartment += 1;
+    }
+    if possible_best.len() == 0{
+        return -1;
+    }
+    let mut best = 0;
+    let mut i = 0;
+    while i < possible_best.len(){
+        if possible_best[best].distance_to_buildings.iter().max() >
+        possible_best[i].distance_to_buildings.iter().max(){
+            best = i;
+        }
+        i += 1;
+    }
+    possible_best[best].apartment_number as i32
+}
+fn lab1(file: &str){
+    let lines = lines_from_file(file);
     for ln in lines{
         let apartment_map = get_map(&ln);
         //Valida que se halla creado el mapa correctamente
@@ -57,16 +125,16 @@ fn main() {
         let height = apartment_map["input1"].as_array().unwrap().len();
         let width = apartment_map["input2"].as_array().unwrap().len();
         let matrix = create_matrix(width, height, apartment_map);
-        let mut i = 0;
-        let mut j = 0;
-        while i < matrix.len(){
-            if matrix[i]{
-                j+=1;
-            }
-            i+=3;
+        let best_apartment = find_best_apartment(width, height, matrix);
+        if best_apartment == -1{
+            println!("[]");
         }
-        println!("{}", j);
-        // println!("{} {}", apartment_map["input1"][2][apartment_map["input2"][0].to_string()], apartment_map["input2"][0]);
+        else{
+            println!("[{}]", best_apartment);
+        }
     }
+}
+fn main() {
+    lab1("./input/input_example.jsonl");
 }
 
