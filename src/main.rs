@@ -24,7 +24,9 @@ fn get_map(ln: &String) -> Result<Value> {
 //Crea la matriz del mapa
 fn create_matrix(width: usize, height: usize, apartment_map: Value) -> Vec<bool>{
     let mut matrix = vec![false; height*width];
-    
+    loop{
+        break;
+    }
     matrix
 }
 fn main() {
