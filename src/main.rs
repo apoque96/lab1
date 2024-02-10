@@ -24,8 +24,19 @@ fn get_map(ln: &String) -> Result<Value> {
 //Crea la matriz del mapa
 fn create_matrix(width: usize, height: usize, apartment_map: Value) -> Vec<bool>{
     let mut matrix = vec![false; height*width];
-    loop{
-        break;
+    let mut apartment = 0;
+    let mut building = 0;
+    while building < width{
+        let building_string = apartment_map["input2"][building].to_string();
+        let building_string = (building_string[1..building_string.len()-1]).to_string();
+        while apartment < height{
+            if apartment_map["input1"][apartment][&building_string] == true{
+                matrix[apartment * width + building] = true;
+            }
+            apartment += 1;
+        }
+        apartment = 0;
+        building += 1;
     }
     matrix
 }
@@ -46,18 +57,15 @@ fn main() {
         let height = apartment_map["input1"].as_array().unwrap().len();
         let width = apartment_map["input2"].as_array().unwrap().len();
         let matrix = create_matrix(width, height, apartment_map);
-        //Esto solo está para guiarme
-        // Our 1D index into the array starts every row at a multiple of the array's width w.
-
-        // So now, we can get the value of the first item in every row by going...
-
-        // arr[y * w]
-        //     ^^^^^
-
-        // // arr[0 * 5] = 0
-        // // arr[1 * 5] = 5
-        // // arr[2 * 5] = 10
-
+        let mut i = 0;
+        let mut j = 0;
+        while i < matrix.len(){
+            if matrix[i]{
+                j+=1;
+            }
+            i+=3;
+        }
+        println!("{}", j);
         // println!("{} {}", apartment_map["input1"][2][apartment_map["input2"][0].to_string()], apartment_map["input2"][0]);
     }
 }
