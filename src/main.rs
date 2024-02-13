@@ -1,6 +1,6 @@
 use serde_json::{Result, Value};
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::File,
     io::{prelude::*, BufReader},
     path::Path,
 };
@@ -44,7 +44,7 @@ struct Apartment{
     distance_to_buildings: Vec<usize>,
 }
 //Encuentra el departamento con las mejores caracteristicas
-fn find_best_apartment(width: usize, height: usize, matrix: Vec<bool>) -> i32{
+fn find_best_apartment(width: usize, height: usize, matrix: Vec<bool>) -> Vec<Apartment>{
     let mut possible_best = vec![];
     let mut min_distance = 0;
     let mut apartment = 0;
@@ -102,37 +102,57 @@ fn find_best_apartment(width: usize, height: usize, matrix: Vec<bool>) -> i32{
     }
     if possible_best.len() == 0{
         //No hay apartamento que satiface las condiciones
-        return -1;
+        return possible_best;
     }
-    //Busca el apartamento con el que se tiene que caminar menos
-    let mut best = 0;
-    let mut i = 0;
-    while i < possible_best.len(){
-        if possible_best[best].distance_to_buildings.iter().max() >
-        possible_best[i].distance_to_buildings.iter().max(){
-            best = i;
+    //Busca los apartamentos con el que se tiene que caminar menos
+    let mut lowest = -1;
+    apartment = width-1;
+    loop {
+        for app in &mut possible_best{
+            app.distance_to_buildings.sort();
+            if lowest == -1{
+                lowest = app.distance_to_buildings[apartment] as i32;
+            }
+            if lowest > app.distance_to_buildings[apartment] as i32{
+                lowest = app.distance_to_buildings[apartment] as i32;
+            }
         }
-        i += 1;
+        {
+        let mut i = 0;
+        while i < possible_best.len(){
+            if possible_best[i].distance_to_buildings[apartment] > lowest as usize{
+                possible_best.remove(i);
+            }
+            else{
+                i += 1;
+            }
+        }
+        }
+
+        if apartment == 0{
+            break;
+        }
+        apartment -= 1;
     }
-    possible_best[best].apartment_number as i32
+    possible_best
 }
-fn lab1(path: &str, example: bool){
+fn lab1(path: &str){
     //Lee el json
     let lines = lines_from_file(path);
-    //Crea el archivo para guardar el resultado y lo almacena 
-    let result_path = if example {
-        let s = "./result_example.txt";
-        s
-    }else{
-        let s = "./result_challenge.txt";
-        s
-    };
-    _ = fs::write(result_path, "");
-    let mut file = OpenOptions::new()
-    .write(true)
-    .append(true)
-    .open(result_path)
-    .unwrap();
+    // //Crea el archivo para guardar el resultado y lo almacena 
+    // let result_path = if example {
+    //     let s = "./result_example.txt";
+    //     s
+    // }else{
+    //     let s = "./result_challenge.txt";
+    //     s
+    // };
+    // _ = fs::write(result_path, "");
+    // let mut file = OpenOptions::new()
+    // .write(true)
+    // .append(true)
+    // .open(result_path)
+    // .unwrap();
     for ln in lines{
         let apartment_map = get_map(&ln);
         //Valida que se halla creado el mapa correctamente
@@ -150,23 +170,35 @@ fn lab1(path: &str, example: bool){
         let width = apartment_map["input2"].as_array().unwrap().len();
         let matrix = create_matrix(width, height, apartment_map);
         let best_apartment = find_best_apartment(width, height, matrix);
+        print!("[");
+        {
+        let mut i = 0;
+        while i < best_apartment.len(){
+            print!("{}", best_apartment[i].apartment_number);
+            if i < best_apartment.len()-1{
+                print!(", ");
+            }
+            i += 1;
+        }
+        }
+        println!("]");
         //Si el resultado obtenido es de -1, significa que no hay
         //apartamento que satisface las condiciones
-        if best_apartment == -1{
-            if let Err(e) = writeln!(file, "[]") {
-                eprintln!("Couldn't write to file: {}", e);
-            }
-        }
-        else{
-            let s = "[".to_string() + &best_apartment.to_string() + "]";
-            if let Err(e) = writeln!(file, "{s}") {
-                eprintln!("Couldn't write to file: {}", e);
-            }
-        }
+        // if best_apartment == -1{
+        //     if let Err(e) = writeln!(file, "[]") {
+        //         eprintln!("Couldn't write to file: {}", e);
+        //     }
+        // }
+        // else{
+        //     let s = "[".to_string() + &best_apartment.to_string() + "]";
+        //     if let Err(e) = writeln!(file, "{s}") {
+        //         eprintln!("Couldn't write to file: {}", e);
+        //     }
+        // }
     }
 }
 fn main() {
-    lab1("./input/input_example.jsonl", true);
-    lab1("./input/input_challenge.jsonl", false);
+    // lab1("./input/input_example.jsonl", true);
+    lab1("./input/input_challenge.jsonl");
 }
 
