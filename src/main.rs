@@ -107,52 +107,50 @@ fn find_best_apartment(width: usize, height: usize, matrix: Vec<bool>) -> Vec<Ap
     //Busca los apartamentos con el que se tiene que caminar menos
     let mut lowest = -1;
     apartment = width-1;
-    loop {
-        for app in &mut possible_best{
-            app.distance_to_buildings.sort();
-            if lowest == -1{
-                lowest = app.distance_to_buildings[apartment] as i32;
-            }
-            if lowest > app.distance_to_buildings[apartment] as i32{
-                lowest = app.distance_to_buildings[apartment] as i32;
-            }
+    for app in &mut possible_best{
+        app.distance_to_buildings.sort();
+        if lowest == -1{
+            lowest = app.distance_to_buildings[apartment] as i32;
         }
-        {
-        let mut i = 0;
-        while i < possible_best.len(){
-            if possible_best[i].distance_to_buildings[apartment] > lowest as usize{
-                possible_best.remove(i);
-            }
-            else{
-                i += 1;
-            }
+        if lowest > app.distance_to_buildings[apartment] as i32{
+            lowest = app.distance_to_buildings[apartment] as i32;
         }
-        }
-
-        if apartment == 0{
-            break;
-        }
-        apartment -= 1;
     }
+    let mut i = 0;
+    while i < possible_best.len(){
+        if possible_best[i].distance_to_buildings[apartment] > lowest as usize{
+            possible_best.remove(i);
+        }
+        else{
+            i += 1;
+        }
+    }
+
+    lowest = -1;
+    for app in &mut possible_best{
+        if lowest == -1{
+            lowest = app.distance_to_buildings[0] as i32;
+        }
+        if lowest > app.distance_to_buildings[0] as i32{
+            lowest = app.distance_to_buildings[0] as i32;
+        }
+    }
+
+    i = 0;
+    while i < possible_best.len(){
+        if possible_best[i].distance_to_buildings[0] > lowest as usize{
+            possible_best.remove(i);
+        }
+        else{
+            i += 1;
+        }
+    }
+    //Please update
     possible_best
 }
 fn lab1(path: &str){
     //Lee el json
     let lines = lines_from_file(path);
-    // //Crea el archivo para guardar el resultado y lo almacena 
-    // let result_path = if example {
-    //     let s = "./result_example.txt";
-    //     s
-    // }else{
-    //     let s = "./result_challenge.txt";
-    //     s
-    // };
-    // _ = fs::write(result_path, "");
-    // let mut file = OpenOptions::new()
-    // .write(true)
-    // .append(true)
-    // .open(result_path)
-    // .unwrap();
     for ln in lines{
         let apartment_map = get_map(&ln);
         //Valida que se halla creado el mapa correctamente
@@ -182,19 +180,6 @@ fn lab1(path: &str){
         }
         }
         println!("]");
-        //Si el resultado obtenido es de -1, significa que no hay
-        //apartamento que satisface las condiciones
-        // if best_apartment == -1{
-        //     if let Err(e) = writeln!(file, "[]") {
-        //         eprintln!("Couldn't write to file: {}", e);
-        //     }
-        // }
-        // else{
-        //     let s = "[".to_string() + &best_apartment.to_string() + "]";
-        //     if let Err(e) = writeln!(file, "{s}") {
-        //         eprintln!("Couldn't write to file: {}", e);
-        //     }
-        // }
     }
 }
 fn main() {
